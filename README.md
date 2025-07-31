@@ -44,6 +44,9 @@ Hidden camera detector then we must be knowing that all the electronic cameras e
 
 7.Share app then they can share and save lives.
 
+INSTALLATION:
+https://appgallery.huawei.com/app/C105254837
+
 Technologies, Libraries and Components Used
 Technologies and Libraries used:
 
