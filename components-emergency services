@@ -1,0 +1,87 @@
+import React, { useState, useEffect } from "react";
+import { realtimeDb } from "../firebaseConfig";
+import { collection, addDoc, getDocs, deleteDoc, doc } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+import { ref, set, push, onValue } from "firebase/database";
+
+const EmergencyServices = () => {
+  const [contacts, setContacts] = useState([]);
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+
+  const auth = getAuth();
+  const userId = auth.currentUser ? auth.currentUser.uid : "guest";
+
+  useEffect(() => {
+    fetchContacts();
+  }, []);
+
+  // Fetch emergency contacts
+  const fetchContacts = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(realtimeDb, "emergency_contacts")); 
+      const contactsList = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setContacts(contactsList);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
+  // Add new emergency contact
+  const addEmergencyContact = async (userId, contactName, phoneNumber) => {
+    try {
+      await addDoc(collection(realtimeDb, "emergency_contacts"), {
+        userId,
+        contactName,
+        phoneNumber
+      });
+      console.log("Emergency contact added!");
+      fetchContacts(); // Refresh contacts after adding
+    } catch (error) {
+      console.error("Error adding document: ", error);
+    }
+  };
+
+  // Delete contact
+  const deleteContact = async (id) => {
+    try {
+      await deleteDoc(doc(realtimeDb, "emergency_contacts", id));
+      fetchContacts();
+    } catch (error) {
+      console.error("Error deleting contact:", error);
+    }
+  };
+
+  return (
+    <div className="emergency-container">
+      <h2>Emergency Contacts</h2>
+      <input 
+        type="text" 
+        placeholder="Name" 
+        value={name} 
+        onChange={(e) => setName(e.target.value)} 
+      />
+      <input 
+        type="text" 
+        placeholder="Phone Number" 
+        value={phone} 
+        onChange={(e) => setPhone(e.target.value)} 
+      />
+      <button onClick={() => addEmergencyContact(userId, name, phone)}>Add Contact</button>
+      
+      <ul>
+        {contacts.map((contact) => (
+          <li key={contact.id}>
+            {contact.contactName} - {contact.phoneNumber}
+            <button onClick={() => deleteContact(contact.id)}>Delete</button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+export default EmergencyServices;
